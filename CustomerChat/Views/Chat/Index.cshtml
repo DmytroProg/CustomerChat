@@ -1,0 +1,114 @@
+﻿@model CustomerChat.Models.ChatViewModel
+@inject IHttpContextAccessor Accessor
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Chat</h1>
+
+<div class="row">
+    <div class="message-container">
+        @foreach(var item in Model.Messages)
+        {
+            string messageClass = "message ";
+            @if(item.Sender == Accessor.HttpContext.Session.GetString("LoggedNick"))
+            {
+                messageClass += "outgoing";
+            }
+            else
+            {
+                messageClass += "incoming";
+            }
+            <div class="@messageClass">
+                <div>
+                    <p>@item.MessageText</p>
+                    @if (item.FileUrl != null)
+                    {
+                        if (item.FileUrl.EndsWith("jpg") || item.FileUrl.EndsWith("png"))
+                        {
+                            <img src="@item.FileUrl
+                                    " alt="Picture" width="100" />
+                        }
+                        else
+                        {
+                            <a class="sender" href="@item.FileUrl">file</a>
+                        }
+                    }
+                </div>
+                <div class="message-time">@item.CreatedAt</div>
+            </div>
+        }
+    </div>
+</div>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="CreateMessage" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <label>Receiver: </label>
+            <select asp-for="@Model.Message.Receiver">
+                <option value="All">All</option>
+                @foreach(var user in Model.Names)
+                {
+                    <option value="@user">@user</option>
+                }
+            </select>
+            <br/>
+            <br/>
+            <div class="messageBox">
+                <div class="fileUploadWrapper">
+                    <label for="file">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 337 337">
+                            <circle stroke-width="20"
+                                    stroke="#6c6c6c"
+                                    fill="none"
+                                    r="158.5"
+                                    cy="168.5"
+                                    cx="168.5"></circle>
+                            <path stroke-linecap="round"
+                                  stroke-width="25"
+                                  stroke="#6c6c6c"
+                                  d="M167.759 79V259"></path>
+                            <path stroke-linecap="round"
+                                  stroke-width="25"
+                                  stroke="#6c6c6c"
+                                  d="M79 167.138H259"></path>
+                        </svg>
+                        <span class="tooltip">Add an image</span>
+                    </label>
+                    <input name="FileUrl" id="file" type="file" />
+                </div>
+                <input asp-for="@Model.Message.MessageText" required="" placeholder="Message..." type="text" id="messageInput" />
+                <button id="sendButton" type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 664 663">
+                        <path fill="none"
+                              d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"></path>
+                        <path stroke-linejoin="round"
+                              stroke-linecap="round"
+                              stroke-width="33.67"
+                              stroke="#6c6c6c"
+                              d="M646.293 331.888L17.7538 17.6187L155.245 331.888M646.293 331.888L17.753 646.157L155.245 331.888M646.293 331.888L318.735 330.228L155.245 331.888"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<script>
+    setInterval(() => { 
+        let input_text = document.getElementById('messageInput');
+        if (input_text.value == '') {
+            window.location.reload();
+        }
+    }, 10000);
+</script>
